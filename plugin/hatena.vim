@@ -264,6 +264,36 @@ function! s:HatenaEdit(...) " 編集する
         set nopaste
     endif
 	set nomodified
+    call s:HatenaSuperPreSyntax()
+endfunction
+
+function! s:HatenaSuperPreSyntax()
+  if !exists('b:super_pre_langs')
+    let b:super_pre_langs = {}
+    autocmd BufEnter <buffer> call s:HatenaSuperPreSyntax()
+  endif
+  let lnum = 1
+  let lmax = line("$")
+  let mx = '^>|\(.*\)|$'
+  while lnum <= lmax
+    let curline = getline(lnum)
+    if curline =~ mx
+      let lang = substitute(curline, mx, '\1', '')
+      if len(lang) && !has_key(b:super_pre_langs, lang)
+        exec 'runtime! syntax/'.lang.'.vim'
+        unlet b:current_syntax
+        let syntaxfile = fnameescape(substitute(globpath(&rtp, 'syntax/'.lang.'.vim'), '[\r\n].*$', '', ''))
+        if len(syntaxfile)
+          let b:super_pre_langs[lang] = syntaxfile
+          exec 'syntax include @inline_'.lang.' '.syntaxfile
+          exec 'syn region hatenaSuperPre matchgroup=hatenaBlockDelimiter start=+^>|'.lang.'|$+ end=+^||<$+ contains=@inline_'.lang
+        endif
+      endif
+    end
+    let lnum = lnum + 1
+  endwhile
+  " workaround for perl
+  silent exec "syn cluster inline_perl remove=perlFunctionName"
 endfunction
 
 "指定先から一日分のエントリを取得。
