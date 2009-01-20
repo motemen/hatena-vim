@@ -127,12 +127,12 @@ function! s:HatenaLogin()
     else
         let hatena_user = g:hatena_user
     endif
-	return HatenaLogin(hatena_user)
+    return HatenaLogin(hatena_user)
 endfunction
 
 "TODO: この関数をグローバルにするセキュリティリスクについて考察
 function! HatenaLogin(user)
-	let hatena_user=a:user
+    let hatena_user=a:user
     let [base_url, user] = s:GetBaseURLAndUser(hatena_user)
 
     let tmpfile = tempname()
@@ -147,12 +147,12 @@ function! HatenaLogin(user)
     " クッキーがある場合はクッキーでログインを試みる
     if filereadable(cookie_file)
         let reply_header = system(s:curl_cmd . ' ' . base_url . user . '/edit -b "' . cookie_file . '" -D - -o ' . tmpfile)
-		if reply_header =~? 'Location: https:'
-			" httpsなグループへ
-			let base_url = substitute(base_url, '^http', 'https', '')
-			let reply_header = system(s:curl_cmd . ' ' . base_url . user . '/edit -b "' . cookie_file . '" -D - -o ' . tmpfile)
-		endif
-		if reply_header !~? 'Location:'
+        if reply_header =~? 'Location: https:'
+            " httpsなグループへ
+            let base_url = substitute(base_url, '^http', 'https', '')
+            let reply_header = system(s:curl_cmd . ' ' . base_url . user . '/edit -b "' . cookie_file . '" -D - -o ' . tmpfile)
+        endif
+        if reply_header !~? 'Location:'
             echo 'ログインしてます'
             return [base_url, user, cookie_file]
         else
@@ -201,10 +201,10 @@ function! s:HatenaEdit(...) " 編集する
         let date = input('Date: ', strftime('%Y%m%d'))
     endif
 
-	if !len(date)
-		echo 'キャンセルしました'
-		return
-	endif
+    if !len(date)
+        echo 'キャンセルしました'
+        return
+    endif
 
     " 20051124, 2005-11-24, 11/24, 24 といった日付を認識
     let pat = '\%(\%(\(\d\d\d\d\)[/-]\=\)\=\(\d\d\)[/-]\=\)\=\(\d\d\)'
@@ -224,7 +224,7 @@ function! s:HatenaEdit(...) " 編集する
     if !strlen(year)  | let year  = strftime('%Y') | endif
     if !strlen(month) | let month = strftime('%m') | endif
 
-	let content = HatenaLoadContent(base_url,user,year,month,day,cookie_file)
+    let content = HatenaLoadContent(base_url,user,year,month,day,cookie_file)
 
     " セッション(編集バッファ)を作成
     let tmpfile = tempname()
@@ -263,7 +263,7 @@ function! s:HatenaEdit(...) " 編集する
     if nopaste
         set nopaste
     endif
-	set nomodified
+    set nomodified
     call s:HatenaSuperPreSyntax()
 endfunction
 
@@ -298,7 +298,7 @@ endfunction
 
 "指定先から一日分のエントリを取得。
 "return: dictionary {
-"	diary_title, day_title, timestamp, rkm, body, fenc
+"    diary_title, day_title, timestamp, rkm, body, fenc
 "}
 function! HatenaLoadContent(base_url,user,year,month,day,cookie_file)
     " 編集ページを取得
@@ -310,12 +310,12 @@ function! HatenaLoadContent(base_url,user,year,month,day,cookie_file)
         let content = iconv(content, 'euc-jp', &enc)
         let fenc = 'euc-jp'
     endif
-	let result=s:HatenaParseContent(content)
-	let result['fenc']=fenc
-	let result['year']=a:year
-	let result['month']=a:month
-	let result['day']=a:day
-	return result
+    let result=s:HatenaParseContent(content)
+    let result['fenc']=fenc
+    let result['year']=a:year
+    let result['month']=a:month
+    let result['day']=a:day
+    return result
 endfunction
 
 function! s:HatenaParseContent(content)
@@ -324,13 +324,13 @@ function! s:HatenaParseContent(content)
     let timestamp   = matchstr(a:content, 'name="timestamp"\s*value="\zs[^"]*\ze"')
     let rkm         = matchstr(a:content, 'name="rkm"\s*value="\zs[^"]*\ze"')
     let body        = s:HtmlUnescape(matchstr(a:content, '<textarea.\{-}name="body"[^>]*>\zs.\{-}\ze</textarea>'))
-	let result={}
-	let result['diary_title']=diary_title
-	let result['day_title']=day_title
-	let result['timestamp']=timestamp
-	let result['rkm']=rkm
-	let result['body']=body
-	return result
+    let result={}
+    let result['diary_title']=diary_title
+    let result['day_title']=day_title
+    let result['timestamp']=timestamp
+    let result['rkm']=rkm
+    let result['body']=body
+    return result
 endfunction
 
 function! s:HatenaUpdate(...) " 更新する
@@ -361,24 +361,24 @@ function! s:HatenaUpdate(...) " 更新する
     endif
 
     let body_file = expand('%')
-	let diary={'timestamp':b:timestamp, 'rkm':b:rkm, 'year':b:year, 'month':b:month, 'day':b:day, 'day_title':b:day_title}
+    let diary={'timestamp':b:timestamp, 'rkm':b:rkm, 'year':b:year, 'month':b:month, 'day':b:day, 'day_title':b:day_title}
 
-	let result=HatenaPost(base_url,user,cookie_file,diary,body_file)
+    let result=HatenaPost(base_url,user,cookie_file,diary,body_file)
 
     echo '更新しました'
 endfunction
 
 function! HatenaPost(base_url,user,cookie_file,diary,body_file)
-	if a:body_file == ""
-		let body_file=tempname()
-		execute 'new '.body_file
-		call append(0,a:diary['body'])
-		write
-		let &modified=0
-		bdelete
-	else
-		let body_file=a:body_file
-	endif
+    if a:body_file == ""
+        let body_file=tempname()
+        execute 'new '.body_file
+        call append(0,a:diary['body'])
+        write
+        let &modified=0
+        bdelete
+    else
+        let body_file=a:body_file
+    endif
     " まずは全消去
     let post_data = ' -F mode=enter'
                     \ . ' -F year=' . a:diary.year . ' -F month=' . a:diary.month . ' -F day=' . a:diary.day
@@ -543,68 +543,68 @@ endfunction
 "{ 'eid':entry-id, 'title':title, 'body':body }
 " TODO: タイトルのない冒頭部
 function! HatenaParseEntries(body)
-	new
-	if type(a:body)==type('')
-		let body=split(a:body,"\n",1)
-	else "expect is list
-		let body=a:body
-	endif
-	call append(0,body)
-	call cursor(1,1)
-	let l:es=[]
-	let l:e=s:FindNextEntry()
-	while l:e
-		let l:next_e=s:FindNextEntry()
-		call add(l:es,[l:e,next_e?next_e-1:line('$')])
-		let l:e=l:next_e
-	endwhile
-	let l:result=[]
-	for [l:st,l:ed] in l:es
-		call add(result,HatenaParseEnrty(getline(l:st),getline(l:st+1,l:ed)))
-	endfor
-	let &modified=0
-	close
-	return l:result
-endfunction	
+    new
+    if type(a:body)==type('')
+        let body=split(a:body,"\n",1)
+    else "expect is list
+        let body=a:body
+    endif
+    call append(0,body)
+    call cursor(1,1)
+    let l:es=[]
+    let l:e=s:FindNextEntry()
+    while l:e
+        let l:next_e=s:FindNextEntry()
+        call add(l:es,[l:e,next_e?next_e-1:line('$')])
+        let l:e=l:next_e
+    endwhile
+    let l:result=[]
+    for [l:st,l:ed] in l:es
+        call add(result,HatenaParseEnrty(getline(l:st),getline(l:st+1,l:ed)))
+    endfor
+    let &modified=0
+    close
+    return l:result
+endfunction    
 
 function! HatenaParseEnrty(title,body)
-	let [eid,title]=matchlist(a:title,'^\*\%(\(\%(\w\|-\)\+\)\*\)\?\(.*\)$')[1:2]
-	let body=a:body
-	return {'eid':eid, 'title':title, 'body':body}
+    let [eid,title]=matchlist(a:title,'^\*\%(\(\%(\w\|-\)\+\)\*\)\?\(.*\)$')[1:2]
+    let body=a:body
+    return {'eid':eid, 'title':title, 'body':body}
 endfunction
 
 "エントリのリストを文字列に直す HatenaParseEntriesの逆
 "諸般の事情(appendの仕様?)により、各行を要素に持つリストを返す。
 function! HatenaExpandEntries(entries)
-	new
-	for e in a:entries
-		call append(line('$'),'*'.e['eid'].'*'.e['title'])
-		call append(line('$'),e['body'])
-	endfor
-	execute '1delete'
-	let result=getline(1,'$')
-	let &modified=0
-	bdelete
-	return result
+    new
+    for e in a:entries
+        call append(line('$'),'*'.e['eid'].'*'.e['title'])
+        call append(line('$'),e['body'])
+    endfor
+    execute '1delete'
+    let result=getline(1,'$')
+    let &modified=0
+    bdelete
+    return result
 endfunction
 
 "カーソル位置以降のエントリを探す
 function! s:FindNextEntry()
-	while 1
-		"skip super pre
-		if search('^>|\w*|$','ce',line('.'))
-			if !search('^||<$','ce') "broken spre
-				return 0
-			endif
-		endif
-		"find next entry
-		let entry=search('^\*\(\%(\w\|-\)\+\)\*\(.*\)$','ce',line('.'))
-		if entry || line('.') >= line('$')
-			call cursor(line('.')+1,1)
-			return entry
-		endif
-		call cursor(line('.')+1,1)
-	endwhile
+    while 1
+        "skip super pre
+        if search('^>|\w*|$','ce',line('.'))
+            if !search('^||<$','ce') "broken spre
+                return 0
+            endif
+        endif
+        "find next entry
+        let entry=search('^\*\(\%(\w\|-\)\+\)\*\(.*\)$','ce',line('.'))
+        if entry || line('.') >= line('$')
+            call cursor(line('.')+1,1)
+            return entry
+        endif
+        call cursor(line('.')+1,1)
+    endwhile
 endfunction
 
 " }}}
