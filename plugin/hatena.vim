@@ -45,10 +45,10 @@ command! -nargs=? HatenaEdit            call <SID>HatenaEdit(<args>)
 " Usage:
 "   :HatenaUpdate [title_of_the_day]
 " title_of_the_day を指定しない場合は既に設定されているタイトルが使われる
-"command! -nargs=? HatenaUpdate         call <SID>HatenaUpdate(<args>)
+command! -nargs=? HatenaUpdate         call <SID>HatenaUpdate(<args>)
 
 " :HatenaUpdate と一緒だけど、`ちょっとした更新' にする
-"command! -nargs=? HatenaUpdateTrivial  let b:trivial=1 | call <SID>HatenaUpdate(<args>)
+command! -nargs=? HatenaUpdateTrivial  let b:trivial=1 | call <SID>HatenaUpdate(<args>)
 
 " はてなのユーザを切り換える
 " 指定しなかった場合は表示する
@@ -361,7 +361,7 @@ function! s:HatenaUpdate(...) " 更新する
     endif
 
     if &modified
-        write
+        noautocmd write
     endif
 
     let body_file = expand('%')
