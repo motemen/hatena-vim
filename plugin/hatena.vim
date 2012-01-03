@@ -45,16 +45,16 @@ command! -nargs=? HatenaEdit            call <SID>HatenaEdit(<args>)
 " Usage:
 "   :HatenaUpdate [title_of_the_day]
 " title_of_the_day を指定しない場合は既に設定されているタイトルが使われる
-"command! -nargs=? HatenaUpdate         call <SID>HatenaUpdate(<args>)
+command! -nargs=? HatenaUpdate         call <SID>HatenaUpdate(<args>)
 
 " :HatenaUpdate と一緒だけど、`ちょっとした更新' にする
-"command! -nargs=? HatenaUpdateTrivial  let b:trivial=1 | call <SID>HatenaUpdate(<args>)
+command! -nargs=? HatenaUpdateTrivial  let b:trivial=1 | call <SID>HatenaUpdate(<args>)
 
 " はてなのユーザを切り換える
 " 指定しなかった場合は表示する
 " Usage:
 "   :HatenaUser [username]
-command! -nargs=? -complete=customlist,HatenaEnumUsers HatenaUser   if strlen('<args>') | let g:hatena_user='<args>' | else | echo g:hatena_user | endif
+command! -nargs=? -complete=customlist,HatenaEnumUsers HatenaUser   if strlen(<q-args>) | let g:hatena_user=<q-args> | else | echo g:hatena_user | endif
 
 nnoremap <Leader>he :HatenaEdit<CR>
 " }}}
@@ -92,14 +92,18 @@ if !exists('g:hatena_always_trivial')
     let g:hatena_always_trivial = 0
 endif
 
-let g:hatena_syntax_html = 1
+if !exists('g:hatena_syntax_html')
+    let g:hatena_syntax_html = 1
+endif
 
 if !g:hatena_hold_cookie
     autocmd VimLeave * call delete(b:hatena_login_info[2])
 endif
 
 " :HatenaEdit で編集バッファを開くコマンド
-let g:hatena_edit_command = 'edit!'
+if !exists('g:hatena_edit_command')
+    let g:hatena_edit_command = 'edit!'
+endif
 
 let s:curl_cmd = 'curl -k --silent'
 if exists('g:chalice_curl_options') " http://d.hatena.ne.jp/smeghead/20070709/hatenavim
@@ -257,7 +261,7 @@ function! s:HatenaEdit(...) " 編集する
     autocmd WinEnter <buffer> let &titlestring = b:diary_title . ' ' . b:year . '-' . b:month . '-' . b:day . ' [' . b:hatena_login_info[1] . ']'
     let &titlestring = b:diary_title . ' ' . b:year . '-' . b:month . '-' . b:day . ' [' . user . ']'
 
-    let nopaste = !&paste   
+    let nopaste = !&paste
     set paste
     execute 'normal i' . content['body']
     if nopaste
@@ -357,7 +361,7 @@ function! s:HatenaUpdate(...) " 更新する
     endif
 
     if &modified
-        write
+        noautocmd write
     endif
 
     let body_file = expand('%')
@@ -565,7 +569,7 @@ function! HatenaParseEntries(body)
     let &modified=0
     close
     return l:result
-endfunction    
+endfunction
 
 function! HatenaParseEnrty(title,body)
     let [eid,title]=matchlist(a:title,'^\*\%(\(\%(\w\|-\)\+\)\*\)\?\(.*\)$')[1:2]
