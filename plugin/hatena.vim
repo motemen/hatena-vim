@@ -261,7 +261,7 @@ function! s:HatenaEdit(...) " 編集する
     autocmd WinEnter <buffer> let &titlestring = b:diary_title . ' ' . b:year . '-' . b:month . '-' . b:day . ' [' . b:hatena_login_info[1] . ']'
     let &titlestring = b:diary_title . ' ' . b:year . '-' . b:month . '-' . b:day . ' [' . user . ']'
 
-    let nopaste = !&paste   
+    let nopaste = !&paste
     set paste
     execute 'normal i' . content['body']
     if nopaste
@@ -569,7 +569,7 @@ function! HatenaParseEntries(body)
     let &modified=0
     close
     return l:result
-endfunction    
+endfunction
 
 function! HatenaParseEnrty(title,body)
     let [eid,title]=matchlist(a:title,'^\*\%(\(\%(\w\|-\)\+\)\*\)\?\(.*\)$')[1:2]
