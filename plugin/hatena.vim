@@ -54,7 +54,7 @@ command! -nargs=? HatenaEdit            call <SID>HatenaEdit(<args>)
 " 指定しなかった場合は表示する
 " Usage:
 "   :HatenaUser [username]
-command! -nargs=? -complete=customlist,HatenaEnumUsers HatenaUser   if strlen('<args>') | let g:hatena_user='<args>' | else | echo g:hatena_user | endif
+command! -nargs=? -complete=customlist,HatenaEnumUsers HatenaUser   if strlen(<q-args>) | let g:hatena_user=<q-args> | else | echo g:hatena_user | endif
 
 nnoremap <Leader>he :HatenaEdit<CR>
 " }}}
