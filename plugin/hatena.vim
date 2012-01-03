@@ -92,14 +92,18 @@ if !exists('g:hatena_always_trivial')
     let g:hatena_always_trivial = 0
 endif
 
-let g:hatena_syntax_html = 1
+if !exists('g:hatena_syntax_html')
+    let g:hatena_syntax_html = 1
+endif
 
 if !g:hatena_hold_cookie
     autocmd VimLeave * call delete(b:hatena_login_info[2])
 endif
 
 " :HatenaEdit で編集バッファを開くコマンド
-let g:hatena_edit_command = 'edit!'
+if !exists('g:hatena_edit_command')
+    let g:hatena_edit_command = 'edit!'
+endif
 
 let s:curl_cmd = 'curl -k --silent'
 if exists('g:chalice_curl_options') " http://d.hatena.ne.jp/smeghead/20070709/hatenavim
