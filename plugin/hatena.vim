@@ -113,6 +113,10 @@ let s:hatena_login_url      = 'https://www.hatena.ne.jp/login'
 let s:hatena_base_url       = 'http://d.hatena.ne.jp/'
 let s:hatena_group_base_url = 'http://%s.g.hatena.ne.jp/'
 
+if !exists('g:hatena_upload_on_write')
+    let g:hatena_upload_on_write = 1
+endif
+
 " }}}
 " ===========================
 
@@ -256,7 +260,9 @@ function! s:HatenaEdit(...) " 編集する
     let b:timestamp     = content['timestamp']
     let b:prev_titlestring = &titlestring
 
-    autocmd BufWritePost <buffer> call s:HatenaUpdate() | set readonly |let &titlestring = b:prev_titlestring | bdelete
+    if g:hatena_upload_on_write
+        autocmd BufWritePost <buffer> call s:HatenaUpdate() | set readonly |let &titlestring = b:prev_titlestring | bdelete
+    endif
     autocmd WinLeave <buffer> let &titlestring = b:prev_titlestring
     autocmd WinEnter <buffer> let &titlestring = b:diary_title . ' ' . b:year . '-' . b:month . '-' . b:day . ' [' . b:hatena_login_info[1] . ']'
     let &titlestring = b:diary_title . ' ' . b:year . '-' . b:month . '-' . b:day . ' [' . user . ']'
