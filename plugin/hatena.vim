@@ -176,7 +176,7 @@ function! HatenaLogin(user)
         return []
     endif
 
-    let content = system(s:curl_cmd . ' ' . s:hatena_login_url . ' -d name=' . user . ' -d password=' . password . ' -d mode=enter -c "' . cookie_file . '"')
+    let content = system(s:curl_cmd . ' ' . s:hatena_login_url . ' -d name=' . user . ' -d password="' . password . '" -d mode=enter -c "' . cookie_file . '"')
 
     call delete(tmpfile)
 
