@@ -58,7 +58,7 @@ command! -nargs=? -complete=customlist,HatenaEnumUsers HatenaUser   if strlen(<q
 
 if !exists('g:hatena_no_default_keymappings')
 \   || !g:hatena_no_default_keymappings
-    nnoremap <Leader>he :HatenaEdit<CR>
+    silent! nnoremap <unique> <Leader>he :<C-u>HatenaEdit<CR>
 endif
 " }}}
 " ===========================
