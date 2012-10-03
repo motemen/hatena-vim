@@ -56,7 +56,10 @@ command! -nargs=? HatenaUpdateTrivial  let b:trivial=1 | call <SID>HatenaUpdate(
 "   :HatenaUser [username]
 command! -nargs=? -complete=customlist,HatenaEnumUsers HatenaUser   if strlen(<q-args>) | let g:hatena_user=<q-args> | else | echo g:hatena_user | endif
 
-nnoremap <Leader>he :HatenaEdit<CR>
+if !exists('g:hatena_no_default_keymappings')
+\   || !g:hatena_no_default_keymappings
+    nnoremap <Leader>he :HatenaEdit<CR>
+endif
 " }}}
 " ===========================
 
