@@ -19,7 +19,7 @@ syn match hatenaTable           +^|\(.\{-}|\)\++    contains=hatenaTableHeader,h
 syn match hatenaTableHeader     +\*[^|]\++          contained
 syn match hatenaTableSeparator  +|+                 contained
 
-syn match hatenaLink            +\[\(http\|google\(:news\|:image\)\=\|amazon\|rakuten\):.\{-}\]+    contains=hatenaLinkSpecial
+syn match hatenaLink            +\[\(https\?\|google\(:news\|:image\)\=\|amazon\|rakuten\):.\{-}\]+    contains=hatenaLinkSpecial
 syn match hatenaLinkURL         +https\=://[-!#$%&*+,./:;=?@0-9a-zA-Z_~]\++
 syn match hatenaLinkSpecial     +:title\(=[^]]*\)\=\ze\]\|:barcode\|:image+
 
