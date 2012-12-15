@@ -120,6 +120,11 @@ if !exists('g:hatena_upload_on_write')
     let g:hatena_upload_on_write = 1
 endif
 
+" g:hatena_entry_file の使い方:
+" " Dropboxに一時ファイルを置くことでDropbox上に履歴を残すことができる
+" let g:hatena_entry_file = '~/Dropbox/memo/blogentry.txt'
+
+
 " }}}
 " ===========================
 
@@ -238,11 +243,23 @@ function! s:HatenaEdit(...) " 編集する
     let content = HatenaLoadContent(base_url,user,year,month,day,cookie_file)
 
     " セッション(編集バッファ)を作成
-    let tmpfile = tempname()
+    if exists('g:hatena_entry_file')
+        " g:hatena_entry_fileはexpand()されるため
+        " 「~/Dropbox/memo/blogentry.txt」のような表記が使用可能
+        let tmpfile = expand(g:hatena_entry_file)
+    else
+        let tmpfile = tempname()
+    endif
     execute g:hatena_edit_command tmpfile
+    if exists('g:hatena_entry_file')
+        " 既存のテキストを削除する
+        " (新しいファイルを作ってしまうとundoが保持されない)
+        silent %delete _
+    endif
+
     set filetype=hatena
     setlocal noswapfile
-    let &fileencoding = content['fenc']
+    " let &fileencoding = content['fenc']
     let b:rkm = content['rkm']
 
     if !strlen(b:rkm)
@@ -262,6 +279,7 @@ function! s:HatenaEdit(...) " 編集する
     let b:day_title     = content['day_title']
     let b:timestamp     = content['timestamp']
     let b:prev_titlestring = &titlestring
+    let b:body_file_enc = content['fenc']
 
     if g:hatena_upload_on_write
         autocmd BufWritePost <buffer> call s:HatenaUpdate() | set readonly |let &titlestring = b:prev_titlestring | bdelete
@@ -376,12 +394,12 @@ function! s:HatenaUpdate(...) " 更新する
     let body_file = expand('%')
     let diary={'timestamp':b:timestamp, 'rkm':b:rkm, 'year':b:year, 'month':b:month, 'day':b:day, 'day_title':b:day_title}
 
-    let result=HatenaPost(base_url,user,cookie_file,diary,body_file)
+    let result=HatenaPost(base_url,user,cookie_file,diary,body_file,b:body_file_enc)
 
     echo '更新しました'
 endfunction
 
-function! HatenaPost(base_url,user,cookie_file,diary,body_file)
+function! HatenaPost(base_url,user,cookie_file,diary,body_file,body_file_enc)
     if a:body_file == ""
         let body_file=tempname()
         execute 'new '.body_file
@@ -389,6 +407,12 @@ function! HatenaPost(base_url,user,cookie_file,diary,body_file)
         write
         let &modified=0
         bdelete
+    elseif a:body_file ==# expand('%')
+        let body_file=a:body_file
+        let save_fenc=&fileencoding
+        let &fileencoding=a:body_file_enc
+        write
+        let &modified=0
     else
         let body_file=a:body_file
     endif
@@ -406,7 +430,15 @@ function! HatenaPost(base_url,user,cookie_file,diary,body_file)
                     \ . ' -F date=' . a:diary['year'].a:diary['month'].a:diary['day']
                     \ . ' -F "body=<' . body_file . '"'
                     \ . ' -F image= -F title=' . a:diary['day_title']
-    return system(s:curl_cmd . ' ' . a:base_url . a:user . '/edit -b "' . a:cookie_file . '"' . post_data . ' -D -')
+    try
+        return system(s:curl_cmd . ' ' . a:base_url . a:user . '/edit -b "' . a:cookie_file . '"' . post_data . ' -D -')
+    finally
+        if exists('save_fenc')
+            let &fileencoding=save_fenc
+            write
+            let &modified=0
+        endif
+    endtry
 endfunction
 
 function! HatenaGetRKM(login_info)
