@@ -112,14 +112,6 @@ if !exists('g:hatena_upload_on_write_bang')
     let g:hatena_upload_on_write_bang = 0
 endif
 
-let s:curl_cmd = 'curl -k --silent'
-if exists('g:chalice_curl_options') " http://d.hatena.ne.jp/smeghead/20070709/hatenavim
-  let s:curl_cmd = s:curl_cmd . ' ' . g:chalice_curl_options
-endif
-let s:hatena_login_url      = 'https://www.hatena.ne.jp/login'
-let s:hatena_base_url       = 'http://d.hatena.ne.jp/'
-let s:hatena_group_base_url = 'http://%s.g.hatena.ne.jp/'
-
 if !exists('g:hatena_upload_on_write')
     let g:hatena_upload_on_write = 1
 endif
@@ -128,6 +120,14 @@ endif
 " " Dropboxに一時ファイルを置くことでDropbox上に履歴を残すことができる
 " let g:hatena_entry_file = '~/Dropbox/memo/blogentry.txt'
 
+
+let s:curl_cmd = 'curl -k --silent'
+if exists('g:chalice_curl_options') " http://d.hatena.ne.jp/smeghead/20070709/hatenavim
+  let s:curl_cmd = s:curl_cmd . ' ' . g:chalice_curl_options
+endif
+let s:hatena_login_url      = 'https://www.hatena.ne.jp/login'
+let s:hatena_base_url       = 'http://d.hatena.ne.jp/'
+let s:hatena_group_base_url = 'http://%s.g.hatena.ne.jp/'
 
 " }}}
 " ===========================
