@@ -48,7 +48,7 @@ command! -nargs=? HatenaEdit            call <SID>HatenaEdit(<args>)
 command! -nargs=? HatenaUpdate         call <SID>HatenaUpdate(<args>)
 
 " :HatenaUpdate と一緒だけど、`ちょっとした更新' にする
-command! -nargs=? HatenaUpdateTrivial  let b:trivial=1 | call <SID>HatenaUpdate(<args>)
+command! -nargs=? HatenaUpdateTrivial  let b:hatena_trivial=1 | call <SID>HatenaUpdate(<args>)
 
 " はてなのユーザを切り換える
 " 指定しなかった場合は表示する
@@ -264,9 +264,9 @@ function! s:HatenaEdit(...) " 編集する
     set filetype=hatena
     setlocal noswapfile
     " let &fileencoding = content['fenc']
-    let b:rkm = content['rkm']
+    let b:hatena_rkm = content['rkm']
 
-    if !strlen(b:rkm)
+    if !strlen(b:hatena_rkm)
         echoerr 'ログインできませんでした'
         if exists('s:user')
             unlet s:user
@@ -275,24 +275,24 @@ function! s:HatenaEdit(...) " 編集する
     endif
 
     let b:hatena_login_info = hatena_login_info
-    let b:year  = year
-    let b:month = month
-    let b:day   = day
-    let b:trivial   = g:hatena_always_trivial
-    let b:diary_title   = content['diary_title']
-    let b:day_title     = content['day_title']
-    let b:timestamp     = content['timestamp']
-    let b:prev_titlestring = &titlestring
-    let b:body_file_enc = content['fenc']
+    let b:hatena_year  = year
+    let b:hatena_month = month
+    let b:hatena_day   = day
+    let b:hatena_trivial   = g:hatena_always_trivial
+    let b:hatena_diary_title   = content['diary_title']
+    let b:hatena_day_title     = content['day_title']
+    let b:hatena_timestamp     = content['timestamp']
+    let b:hatena_prev_titlestring = &titlestring
+    let b:hatena_body_file_enc = content['fenc']
 
     autocmd BufWritePost <buffer>
     \   if g:hatena_upload_on_write || g:hatena_upload_on_write_bang && v:cmdbang
     \   | call s:HatenaUpdate() | set readonly |let &titlestring = b:hatena_prev_titlestring | bdelete
     \   | endif
 
-    autocmd WinLeave <buffer> let &titlestring = b:prev_titlestring
-    autocmd WinEnter <buffer> let &titlestring = b:diary_title . ' ' . b:year . '-' . b:month . '-' . b:day . ' [' . b:hatena_login_info[1] . ']'
-    let &titlestring = b:diary_title . ' ' . b:year . '-' . b:month . '-' . b:day . ' [' . user . ']'
+    autocmd WinLeave <buffer> let &titlestring = b:hatena_prev_titlestring
+    autocmd WinEnter <buffer> let &titlestring = b:hatena_diary_title . ' ' . b:hatena_year . '-' . b:hatena_month . '-' . b:hatena_day . ' [' . b:hatena_login_info[1] . ']'
+    let &titlestring = b:hatena_diary_title . ' ' . b:hatena_year . '-' . b:hatena_month . '-' . b:hatena_day . ' [' . user . ']'
 
     let nopaste = !&paste
     set paste
@@ -305,8 +305,8 @@ function! s:HatenaEdit(...) " 編集する
 endfunction
 
 function! s:HatenaSuperPreSyntax()
-  if !exists('b:super_pre_langs')
-    let b:super_pre_langs = {}
+  if !exists('b:hatena_super_pre_langs')
+    let b:hatena_super_pre_langs = {}
     autocmd BufEnter <buffer> call s:HatenaSuperPreSyntax()
   endif
   let lnum = 1
@@ -316,12 +316,12 @@ function! s:HatenaSuperPreSyntax()
     let curline = getline(lnum)
     if curline =~ mx
       let lang = substitute(curline, mx, '\1', '')
-      if len(lang) && !has_key(b:super_pre_langs, lang)
+      if len(lang) && !has_key(b:hatena_super_pre_langs, lang)
         exec 'runtime! syntax/'.lang.'.vim'
         unlet b:current_syntax
         let syntaxfile = fnameescape(substitute(globpath(&rtp, 'syntax/'.lang.'.vim'), '[\r\n].*$', '', ''))
         if len(syntaxfile)
-          let b:super_pre_langs[lang] = syntaxfile
+          let b:hatena_super_pre_langs[lang] = syntaxfile
           exec 'syntax include @inline_'.lang.' '.syntaxfile
           exec 'syn region hatenaSuperPre matchgroup=hatenaBlockDelimiter start=+^>|'.lang.'|$+ end=+^||<$+ contains=@inline_'.lang
         endif
@@ -372,7 +372,7 @@ endfunction
 
 function! s:HatenaUpdate(...) " 更新する
     " 日時を取得
-    if !exists('b:hatena_login_info') || !exists('b:year') || !exists('b:month') || !exists('b:day') || !exists('b:day_title') || !exists('b:rkm')
+    if !exists('b:hatena_login_info') || !exists('b:hatena_year') || !exists('b:hatena_month') || !exists('b:hatena_day') || !exists('b:hatena_day_title') || !exists('b:hatena_rkm')
         echoerr ':HatanaEdit してから :HatenaUpdate して下さい'
         return
     endif
@@ -388,9 +388,9 @@ function! s:HatenaUpdate(...) " 更新する
     let [base_url, user, cookie_file] = b:hatena_login_info
 
     if a:0 > 0
-        let b:day_title = a:1
+        let b:hatena_day_title = a:1
     "else
-    "   let b:day_title = input('タイトル: ', b:day_title)
+    "   let b:hatena_day_title = input('タイトル: ', b:hatena_day_title)
     endif
 
     if &modified
@@ -398,9 +398,9 @@ function! s:HatenaUpdate(...) " 更新する
     endif
 
     let body_file = expand('%')
-    let diary={'timestamp':b:timestamp, 'rkm':b:rkm, 'year':b:year, 'month':b:month, 'day':b:day, 'day_title':b:day_title}
+    let diary={'timestamp':b:hatena_timestamp, 'rkm':b:hatena_rkm, 'year':b:hatena_year, 'month':b:hatena_month, 'day':b:hatena_day, 'day_title':b:hatena_day_title}
 
-    let result=HatenaPost(base_url,user,cookie_file,diary,body_file,b:body_file_enc)
+    let result=HatenaPost(base_url,user,cookie_file,diary,body_file,b:hatena_body_file_enc)
 
     echo '更新しました'
 endfunction
