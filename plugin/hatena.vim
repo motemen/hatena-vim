@@ -394,7 +394,7 @@ function! s:HatenaUpdate(...) " 更新する
     endif
 
     if &modified
-        noautocmd write
+        noautocmd silent write
     endif
 
     let body_file = expand('%')
@@ -410,14 +410,14 @@ function! HatenaPost(base_url,user,cookie_file,diary,body_file,body_file_enc)
         let body_file=tempname()
         execute 'new '.body_file
         call append(0,a:diary['body'])
-        write
+        silent write
         let &modified=0
         bdelete
     elseif a:body_file ==# expand('%')
         let body_file=a:body_file
         let save_fenc=&fileencoding
         let &fileencoding=a:body_file_enc
-        write
+        silent write
         let &modified=0
     else
         let body_file=a:body_file
@@ -441,7 +441,7 @@ function! HatenaPost(base_url,user,cookie_file,diary,body_file,body_file_enc)
     finally
         if exists('save_fenc')
             let &fileencoding=save_fenc
-            write
+            silent write
             let &modified=0
         endif
     endtry
@@ -478,7 +478,7 @@ function! HatenaPostEntry(login_info, rkm, entry)
         let body_file = a:entry.body_file
         execute 'split ' . body_file
         let &fileencoding = fenc
-        write
+        silent write
         quit
     else
         let body_file = tempname()
@@ -486,7 +486,7 @@ function! HatenaPostEntry(login_info, rkm, entry)
         set paste
         normal! C=a:entry.body
         let &fileencoding = fenc
-        write
+        silent write
         bdelete
     endif
 
@@ -495,7 +495,7 @@ function! HatenaPostEntry(login_info, rkm, entry)
     set paste
     normal! C=a:entry.title
     let &fileencoding = fenc
-    write
+    silent write
     bdelete
 
     let &paste = paste_save
