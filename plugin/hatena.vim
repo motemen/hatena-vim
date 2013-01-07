@@ -108,6 +108,10 @@ if !exists('g:hatena_edit_command')
     let g:hatena_edit_command = 'edit!'
 endif
 
+if !exists('g:hatena_upload_on_write_bang')
+    let g:hatena_upload_on_write_bang = 0
+endif
+
 let s:curl_cmd = 'curl -k --silent'
 if exists('g:chalice_curl_options') " http://d.hatena.ne.jp/smeghead/20070709/hatenavim
   let s:curl_cmd = s:curl_cmd . ' ' . g:chalice_curl_options
@@ -281,9 +285,11 @@ function! s:HatenaEdit(...) " 編集する
     let b:prev_titlestring = &titlestring
     let b:body_file_enc = content['fenc']
 
-    if g:hatena_upload_on_write
-        autocmd BufWritePost <buffer> call s:HatenaUpdate() | set readonly |let &titlestring = b:prev_titlestring | bdelete
-    endif
+    autocmd BufWritePost <buffer>
+    \   if g:hatena_upload_on_write || g:hatena_upload_on_write_bang && v:cmdbang
+    \   | call s:HatenaUpdate() | set readonly |let &titlestring = b:hatena_prev_titlestring | bdelete
+    \   | endif
+
     autocmd WinLeave <buffer> let &titlestring = b:prev_titlestring
     autocmd WinEnter <buffer> let &titlestring = b:diary_title . ' ' . b:year . '-' . b:month . '-' . b:day . ' [' . b:hatena_login_info[1] . ']'
     let &titlestring = b:diary_title . ' ' . b:year . '-' . b:month . '-' . b:day . ' [' . user . ']'
