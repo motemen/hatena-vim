@@ -287,7 +287,7 @@ function! s:HatenaEdit(...) " 編集する
 
     autocmd BufWritePost <buffer>
     \   if g:hatena_upload_on_write || g:hatena_upload_on_write_bang && v:cmdbang
-    \   | call s:HatenaUpdate() | set readonly |let &titlestring = b:hatena_prev_titlestring | bdelete
+    \   |   call s:HatenaUpdate()
     \   | endif
 
     autocmd WinLeave <buffer> let &titlestring = b:hatena_prev_titlestring
@@ -372,7 +372,7 @@ endfunction
 
 function! s:HatenaUpdate(...) " 更新する
     " 日時を取得
-    if !exists('b:hatena_login_info') || !exists('b:hatena_year') || !exists('b:hatena_month') || !exists('b:hatena_day') || !exists('b:hatena_day_title') || !exists('b:hatena_rkm')
+    if !exists('b:hatena_login_info') || !exists('b:hatena_year') || !exists('b:hatena_month') || !exists('b:hatena_day') || !exists('b:hatena_day_title') || !exists('b:hatena_rkm') || expand('%') == ""
         echoerr ':HatanaEdit してから :HatenaUpdate して下さい'
         return
     endif
@@ -406,14 +406,7 @@ function! s:HatenaUpdate(...) " 更新する
 endfunction
 
 function! HatenaPost(base_url,user,cookie_file,diary,body_file,body_file_enc)
-    if a:body_file == ""
-        let body_file=tempname()
-        execute 'new '.body_file
-        call append(0,a:diary['body'])
-        silent write
-        let &modified=0
-        bdelete
-    elseif a:body_file ==# expand('%')
+    if a:body_file ==# expand('%')
         let body_file=a:body_file
         let save_fenc=&fileencoding
         let &fileencoding=a:body_file_enc
