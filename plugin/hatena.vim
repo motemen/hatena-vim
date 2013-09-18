@@ -301,13 +301,13 @@ function! s:HatenaEdit(...) " 編集する
         set nopaste
     endif
     set nomodified
-    call s:HatenaSuperPreSyntax()
+    call HatenaSuperPreSyntax()
 endfunction
 
-function! s:HatenaSuperPreSyntax()
+function! HatenaSuperPreSyntax()
   if !exists('b:hatena_super_pre_langs')
     let b:hatena_super_pre_langs = {}
-    autocmd BufEnter <buffer> call s:HatenaSuperPreSyntax()
+    autocmd BufEnter <buffer> call HatenaSuperPreSyntax()
   endif
   let lnum = 1
   let lmax = line("$")
