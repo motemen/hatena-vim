@@ -116,3 +116,6 @@ hi link hatenaBlockDelimiter    Delimiter
 hi link hatenaReadMore          Special
 hi link hatenaComment           Comment
 hi link hatenaCancelP           Delimiter
+
+let b:hatena_super_pre_langs = {}
+call HatenaSuperPreSyntax()
