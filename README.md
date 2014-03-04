@@ -1,14 +1,13 @@
 # hatena.vim
 ## インストール
-- hatena/plugin/hatena.vim
-- hatena/autoload/hatena.vim
-- hatena/syntax/hatena.vim
-
-以上のファイル/ディレクトリを適当な場所に置いて、パスを通して下さい。
-
-例 (.vimrc):
+### NeoBundle (https://github.com/Shougo/neobundle.vim)
 ```vim
-set runtimepath+=$VIM/hatena
+NeoBundle 'motemen/hatena-vim'
+```
+
+### Vundle (https://github.com/gmarik/vundle)
+```vim
+Bundle 'motemen/hatena-vim'
 ```
 
 ## 使用方法
