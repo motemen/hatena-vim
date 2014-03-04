@@ -1,69 +1,7 @@
-scriptencoding utf-8
-" hatena.vim
+" File: autoload/hatena.vim
 " Author:       motemen <motemen@gmail.com>
 " Version:      20070830
-" vim: set ts=4 sw=4:
 
-" ===========================
-"   インストール {{{
-
-"  - hatena/plugin/hatena.vim
-"  - hatena/syntax/hatena.vim
-"  - hatena/cookies (空ディレクトリ)
-"
-" 以上のファイル/ディレクトリを適当な場所に置いて、パスを通して下さい。
-"
-" 例 (.vimrc):
-" > set runtimepath+=$VIM/hatena
-
-" }}}
-" ===========================
-
-" ===========================
-"   使用方法 {{{
-
-" > :HatenaUser [グループ名:]ユーザ名
-" もしくは
-" > :let g:hatena_user = '[グループ名:]ユーザ名'
-" としてユーザ名を設定し、
-" > :HatenaEdit [[[YYYY]MM]DD]
-" で編集バッファが開きます。日記を書いたら :w で送信します。
-
-" }}}
-" ===========================
-
-" ===========================
-"   コマンド {{{
-
-" はてなにログインし、日記を編集する
-" Usage:
-"   :HatenaEdit [[[YYYY]MM]DD]
-" 日付の形式は YYYYMMDD, YYYY/MM/DD, YYYY-MM-DD
-command! -nargs=? HatenaEdit            call <SID>HatenaEdit(<args>)
-
-" :HatenaEdit で開いたバッファの内容をはてなに送信し、日記を更新する
-" Usage:
-"   :HatenaUpdate [title_of_the_day]
-" title_of_the_day を指定しない場合は既に設定されているタイトルが使われる
-command! -nargs=? HatenaUpdate         call <SID>HatenaUpdate(<args>)
-
-" :HatenaUpdate と一緒だけど、`ちょっとした更新' にする
-command! -nargs=? HatenaUpdateTrivial  let b:hatena_trivial=1 | call <SID>HatenaUpdate(<args>)
-
-" はてなのユーザを切り換える
-" 指定しなかった場合は表示する
-" Usage:
-"   :HatenaUser [username]
-command! -nargs=? -complete=customlist,HatenaEnumUsers HatenaUser   if strlen(<q-args>) | let g:hatena_user=<q-args> | else | echo g:hatena_user | endif
-
-if !exists('g:hatena_no_default_keymappings')
-\   || !g:hatena_no_default_keymappings
-    silent! nnoremap <unique> <Leader>he :<C-u>HatenaEdit<CR>
-endif
-" }}}
-" ===========================
-
-" ===========================
 "   スクリプト設定 {{{
 
 " はてなのユーザID
@@ -87,7 +25,7 @@ endif
 
 " スクリプトのベースディレクトリ (クッキーの保存に使われるだけ)
 if !exists('g:hatena_base_dir')
-    let g:hatena_base_dir = substitute(expand('<sfile>:p:h'), '[/\\]plugin$', '', '')
+    let g:hatena_base_dir = substitute(expand('<sfile>:p:h'), '[/\\]autoload$', '', '')
 endif
 
 " 常に `ちょっとした更新' にする？ (1: 常にちょっとした更新)
@@ -130,9 +68,7 @@ let s:hatena_base_url       = 'http://d.hatena.ne.jp/'
 let s:hatena_group_base_url = 'http://%s.g.hatena.ne.jp/'
 
 " }}}
-" ===========================
 
-" ===========================
 "   スクリプト本体 {{{
 
 " はてなにログインする
@@ -141,17 +77,16 @@ let s:hatena_group_base_url = 'http://%s.g.hatena.ne.jp/'
 "
 "   ログインに成功: [ベースURL, ユーザID, クッキーファイル] を返す。
 "   ログインに失敗: 空リストを返す。
-function! s:HatenaLogin()
+function! hatena#_login()
     if !strlen(g:hatena_user)
-        let hatena_user = input('はてなユーザID(user/group:user): ', '', 'customlist,HatenaEnumUsers')
+        let hatena_user = input('はてなユーザID(user/group:user): ', '', 'customlist,hatena#enum_users')
     else
         let hatena_user = g:hatena_user
     endif
-    return HatenaLogin(hatena_user)
+    return hatena#login(hatena_user)
 endfunction
 
-"TODO: この関数をグローバルにするセキュリティリスクについて考察
-function! HatenaLogin(user)
+function! hatena#login(user)
     let hatena_user=a:user
     let [base_url, user] = s:GetBaseURLAndUser(hatena_user)
 
@@ -201,10 +136,10 @@ function! HatenaLogin(user)
     endif
 endfunction
 
-function! s:HatenaEdit(...) " 編集する
+function! hatena#edit(...) " 編集する
     " ログイン
     if !exists('b:hatena_login_info')
-        let hatena_login_info = s:HatenaLogin()
+        let hatena_login_info = hatena#_login()
         if !len(hatena_login_info)
             return
         endif
@@ -244,7 +179,7 @@ function! s:HatenaEdit(...) " 編集する
     if !strlen(year)  | let year  = strftime('%Y') | endif
     if !strlen(month) | let month = strftime('%m') | endif
 
-    let content = HatenaLoadContent(base_url,user,year,month,day,cookie_file)
+    let content = hatena#load_content(base_url,user,year,month,day,cookie_file)
 
     " セッション(編集バッファ)を作成
     if exists('g:hatena_entry_file')
@@ -287,7 +222,7 @@ function! s:HatenaEdit(...) " 編集する
 
     autocmd BufWritePost <buffer>
     \   if g:hatena_upload_on_write || g:hatena_upload_on_write_bang && v:cmdbang
-    \   |   call s:HatenaUpdate()
+    \   |   call hatena#update()
     \   | endif
 
     autocmd WinLeave <buffer> let &titlestring = b:hatena_prev_titlestring
@@ -301,13 +236,13 @@ function! s:HatenaEdit(...) " 編集する
         set nopaste
     endif
     set nomodified
-    call HatenaSuperPreSyntax()
+    call hatena#super_pre_syntax()
 endfunction
 
-function! HatenaSuperPreSyntax()
+function! hatena#super_pre_syntax()
   if !exists('b:hatena_super_pre_langs')
     let b:hatena_super_pre_langs = {}
-    autocmd BufEnter <buffer> call HatenaSuperPreSyntax()
+    autocmd BufEnter <buffer> call hatena#super_pre_syntax()
   endif
   let lnum = 1
   let lmax = line("$")
@@ -337,7 +272,7 @@ endfunction
 "return: dictionary {
 "    diary_title, day_title, timestamp, rkm, body, fenc
 "}
-function! HatenaLoadContent(base_url,user,year,month,day,cookie_file)
+function! hatena#load_content(base_url,user,year,month,day,cookie_file)
     " 編集ページを取得
     let content = system(s:curl_cmd . ' "' . a:base_url . a:user . '/edit?date=' . a:year.a:month.a:day . '" -b "' . a:cookie_file . '"')
     if a:base_url =~ 'g.hatena'
@@ -370,7 +305,7 @@ function! s:HatenaParseContent(content)
     return result
 endfunction
 
-function! s:HatenaUpdate(...) " 更新する
+function! hatena#update(...) " 更新する
     " 日時を取得
     if !exists('b:hatena_login_info') || !exists('b:hatena_year') || !exists('b:hatena_month') || !exists('b:hatena_day') || !exists('b:hatena_day_title') || !exists('b:hatena_rkm') || expand('%') == ""
         echoerr ':HatanaEdit してから :HatenaUpdate して下さい'
@@ -379,7 +314,7 @@ function! s:HatenaUpdate(...) " 更新する
 
     " ログイン
     if !exists('b:hatena_login_info')
-        let b:hatena_login_info = s:HatenaLogin()
+        let b:hatena_login_info = hatena#_login()
         if !len(b:hatena_login_info)
             return
         endif
@@ -400,12 +335,12 @@ function! s:HatenaUpdate(...) " 更新する
     let body_file = expand('%')
     let diary={'timestamp':b:hatena_timestamp, 'rkm':b:hatena_rkm, 'year':b:hatena_year, 'month':b:hatena_month, 'day':b:hatena_day, 'day_title':b:hatena_day_title}
 
-    let result=HatenaPost(base_url,user,cookie_file,diary,body_file,b:hatena_body_file_enc)
+    let result=hatena#post(base_url,user,cookie_file,diary,body_file,b:hatena_body_file_enc)
 
     echo '更新しました'
 endfunction
 
-function! HatenaPost(base_url,user,cookie_file,diary,body_file,body_file_enc)
+function! hatena#post(base_url,user,cookie_file,diary,body_file,body_file_enc)
     if a:body_file ==# expand('%')
         let body_file=a:body_file
         let save_fenc=&fileencoding
@@ -440,22 +375,22 @@ function! HatenaPost(base_url,user,cookie_file,diary,body_file,body_file_enc)
     endtry
 endfunction
 
-function! HatenaGetRKM(login_info)
+function! hatena#get_rkm(login_info)
     let [base_url, user, cookie_file] = a:login_info
     let json = system(s:curl_cmd . ' "' . base_url . user . '/?mode=json" -b "' . cookie_file . '"')
     return matchstr(json, "'rkm':'\\zs.*\\ze'")
 endfunction
 
 " はてなダイアリー/グループに新しいエントリを投稿する
-" login_info: HatenaLogin() で得られるもの
-" rkm: HatenaGetRKM() などで得られるもの
+" login_info: hatena#login() で得られるもの
+" rkm: hatena#get_rkm() などで得られるもの
 " entry: エントリの情報、以下のキーを持つ
 "  * title
 "  * body (body_file とどちらか一方)
 "  * body_file (body とどちらか一方)
 "  * date (optional)
 "  * timestamp (optional)
-function! HatenaPostEntry(login_info, rkm, entry)
+function! hatena#post_entry(login_info, rkm, entry)
     let [base_url, user, cookie_file] = a:login_info
 
     "if base_url =~ 'g[.]hatena'
@@ -514,12 +449,12 @@ function! HatenaPostEntry(login_info, rkm, entry)
 endfunction
 
 " はてなダイアリー/グループに新しいエントリを投稿する
-" login_info: HatenaLogin() で得られるもの
-" rkm: HatenaGetRKM() などで得られるもの
+" login_info: hatena#login() で得られるもの
+" rkm: hatena#get_rkm() などで得られるもの
 " entry: エントリの情報、以下のキーを持つ
 "  * date
 "  * timestamp
-function! HatenaGetEntry(login_info, rkm, entry)
+function! hatena#get_entry(login_info, rkm, entry)
     let [base_url, user, cookie_file] = a:login_info
 
     if base_url =~ 'g[.]hatena'
@@ -548,7 +483,7 @@ function! HatenaGetEntry(login_info, rkm, entry)
     endif
 endfunction
 
-function! HatenaEnumUsers(...) " ユーザ名を列挙
+function! hatena#enum_users(...) " ユーザ名を列挙
     if !exists('g:hatena_users')
         let g:hatena_users = []
     endif
@@ -586,7 +521,7 @@ endfunction
 "each item is
 "{ 'eid':entry-id, 'title':title, 'body':body }
 " TODO: タイトルのない冒頭部
-function! HatenaParseEntries(body)
+function! hatena#parse_entries(body)
     new
     if type(a:body)==type('')
         let body=split(a:body,"\n",1)
@@ -604,22 +539,22 @@ function! HatenaParseEntries(body)
     endwhile
     let l:result=[]
     for [l:st,l:ed] in l:es
-        call add(result,HatenaParseEnrty(getline(l:st),getline(l:st+1,l:ed)))
+        call add(result,hatena#parse_enrty(getline(l:st),getline(l:st+1,l:ed)))
     endfor
     let &modified=0
     close
     return l:result
 endfunction
 
-function! HatenaParseEnrty(title,body)
+function! hatena#parse_enrty(title,body)
     let [eid,title]=matchlist(a:title,'^\*\%(\(\%(\w\|-\)\+\)\*\)\?\(.*\)$')[1:2]
     let body=a:body
     return {'eid':eid, 'title':title, 'body':body}
 endfunction
 
-"エントリのリストを文字列に直す HatenaParseEntriesの逆
+"エントリのリストを文字列に直す hatena#parse_entriesの逆
 "諸般の事情(appendの仕様?)により、各行を要素に持つリストを返す。
-function! HatenaExpandEntries(entries)
+function! hatena#expand_entries(entries)
     new
     for e in a:entries
         call append(line('$'),'*'.e['eid'].'*'.e['title'])
@@ -652,4 +587,5 @@ function! s:FindNextEntry()
 endfunction
 
 " }}}
-" ===========================
+
+" vim: set ts=4 sw=4 fdm=marker:
