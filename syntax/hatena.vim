@@ -118,4 +118,4 @@ hi link hatenaComment           Comment
 hi link hatenaCancelP           Delimiter
 
 let b:hatena_super_pre_langs = {}
-call hatena#super_pre_syntax()
+silent! call hatena#super_pre_syntax()
